@@ -1,0 +1,58 @@
+import sys
+from pprint import pprint as pp
+from mystic_bbs import *
+
+NODELIST = "/mystic/data/nodelist.txt"
+dictNodelist = {}
+
+def initNodelist():
+  with open(NODELIST) as f:
+    lines = f.readlines()
+  
+  for line in lines:
+    if line.startswith(";"):
+      pass
+    else:
+      tmp = line.strip("\n").split(",")
+      if tmp[0] == "Zone":
+        ZONE = tmp[1]
+      elif tmp[0] == "Region" or tmp[0] == "Host":
+        REGION = tmp[1]
+      else:
+        NODE = tmp[1]
+        BBS_NAME = tmp[2]
+        if BBS_NAME not in dictNodelist:
+          dictNodelist[BBS_NAME] = {}
+  
+        BBS_NAME_PRETTY = BBS_NAME.replace("_"," ")
+        BBS_LOCATION = tmp[3]
+        BBS_SYSOP = tmp[4]
+  
+        test = [string for string in tmp if "NA" in string]
+        if test:
+          BBS_ADDRESS_FULL = test[0][4:]
+        else:
+          BBS_ADDRESS_FULL = "Private"
+  
+        BBS_ADDRESS = BBS_ADDRESS_FULL.split(":")[0]
+  
+        if ":" in BBS_ADDRESS_FULL:
+          BBS_PORT = BBS_ADDRESS_FULL.split(":")[1]
+        else:
+          BBS_PORT = 23
+  
+        d = dictNodelist[BBS_NAME]
+        d["NAME"] = BBS_NAME_PRETTY
+        d["LOCATION"] = BBS_LOCATION
+        d["SYSOP"] = BBS_SYSOP
+        d["ADDRESS"] = BBS_ADDRESS
+        d["PORT"] = BBS_PORT
+        if "NODE_ADDRESSES" not in d:
+          d["NODE_ADDRESSES"] = []
+        NODE_ADDRESS = "%s:%s/%s" % (ZONE,REGION,NODE)
+        d["NODE_ADDRESSES"].append(NODE_ADDRESS)
+
+initNodelist()
+
+writeln(str(dictNodelist["The_Quantum_Wormhole"]))
+writeln("|PA")
