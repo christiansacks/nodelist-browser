@@ -1,9 +1,29 @@
 import sys
+from random import randint
 from pprint import pprint as pp
 from mystic_bbs import *
 
 NODELIST = "/mystic/data/nodelist.txt"
 dictNodelist = {}
+canexit = "no"
+screenWidth = 80
+screenDepth = 24
+AUTHOR = "MeaTLoTioN"
+cRESET = "|16|07"
+hBG = "|20"
+hFG = "|14"
+fBG = "|20"
+fFG = "|14"
+barOffset = 1
+highlightedBBS = ""
+
+KEY_UP       = chr(72)
+KEY_DOWN     = chr(80)
+KEY_ESCAPE   = chr(27)
+KEY_ENTER    = chr(13)
+KEY_TAB      = chr(9)
+KEY_LEFT     = chr(75)
+KEY_RIGHT    = chr(77)
 
 def initNodelist():
   with open(NODELIST) as f:
@@ -40,6 +60,8 @@ def initNodelist():
           BBS_PORT = BBS_ADDRESS_FULL.split(":")[1]
         else:
           BBS_PORT = 23
+
+        BBS_SOFTWARE = "Undefined"
   
         d = dictNodelist[BBS_NAME]
         d["NAME"] = BBS_NAME_PRETTY
@@ -47,12 +69,127 @@ def initNodelist():
         d["SYSOP"] = BBS_SYSOP
         d["ADDRESS"] = BBS_ADDRESS
         d["PORT"] = BBS_PORT
+        d["SOFTWARE"] = BBS_SOFTWARE
+        d["RATING"] = "X"*randint(0, 6)
         if "NODE_ADDRESSES" not in d:
           d["NODE_ADDRESSES"] = []
         NODE_ADDRESS = "%s:%s/%s" % (ZONE,REGION,NODE)
         d["NODE_ADDRESSES"].append(NODE_ADDRESS)
 
-initNodelist()
+def init():
+  write("|CL")
+  header()
+  footer()
+  gotoxy(1,2)
 
-writeln(str(dictNodelist["The_Quantum_Wormhole"]))
+def header():
+  MSG = "BBS Name".ljust(22)+" "+"SysOp".ljust(15)+" "+"Location".ljust(15)+" "+"Software".ljust(15)+" "+"Rating".ljust(6)+" "
+  gotoxy(1,1)
+  write(hBG+hFG+" "*screenWidth)
+  gotoxy(1,1)
+  write(MSG+cRESET)
+
+def footer():
+  MSG = "Mystic Nodelist Browser v1.0 by "+AUTHOR
+  lMSG = len(MSG)
+  gotoxy(1,screenDepth)
+  write(fBG+fFG+" "*screenWidth)
+  gotoxy((screenWidth/2)-(lMSG/2),screenDepth)
+  write(MSG)
+  write(cRESET)
+
+def getBBS(o, s):
+  global barOffset
+  selectedBBS = ""
+  count = 0
+  tmpDict = sorted(dictNodelist, reverse=False)
+  for BBS in tmpDict:
+    count += 1
+    if count == o+s:
+       selectedBBS = BBS
+  return selectedBBS
+
+def showList(offset = 0):
+  global barOffset
+  global highlightedBBS
+  R = 1
+  count = 0
+  gotoxy(1,2)
+  write("|16|07")
+  tmpDict = sorted(dictNodelist, reverse=False)
+  for BBS in tmpDict:
+    count += 1
+    if count < offset+1:
+      pass
+    else:
+      R += 1
+      if R < screenDepth:
+        if barOffset+1 == R:
+          gotoxy(1,R)
+          write('|21|15')
+        C1 = BBS.replace('_',' ').ljust(22)[:22]
+        C2 = dictNodelist[BBS]["SYSOP"].replace('_',' ').ljust(15)[:15]
+        C3 = dictNodelist[BBS]["LOCATION"].replace('_',' ').ljust(15)[:15]
+        C4 = dictNodelist[BBS]["SOFTWARE"].replace('_',' ').ljust(15)[:15]
+        C5 = dictNodelist[BBS]["RATING"].replace('_',' ').ljust(6)[:6]
+        writeln(C1+" "+C2+" "+C3+" "+C4+" "+C5+"  |16|07")
+
+def mainMenu():
+  global barOffset, offset, highlightedBBS
+  maxOffset = len(dictNodelist)-screenDepth-1
+  finished = "no"
+  showList(offset)
+  char, extended = getkey()
+
+  if extended:
+
+    if char == KEY_UP:
+      if barOffset > 1:
+        barOffset -= 1
+      if barOffset == 1:
+        if offset > 0:
+          offset -= 1
+      highlightedBBS = getBBS(barOffset, offset)
+
+    if char == KEY_DOWN:
+      if barOffset < screenDepth-2:
+        barOffset += 1
+      elif barOffset > screenDepth-3:
+        if offset < maxOffset:
+          offset += 1
+      highlightedBBS = getBBS(barOffset, offset)
+
+    if char == KEY_LEFT:
+      if offset > screenDepth-3:
+        offset -= screenDepth-3
+      else:
+        offset = 0
+      highlightedBBS = getBBS(barOffset, offset)
+
+    if char == KEY_RIGHT:
+      if offset < maxOffset - (screenDepth-3):
+        offset += screenDepth-3
+      else:
+        offset = maxOffset
+      highlightedBBS = getBBS(barOffset, offset)
+
+  else:
+    if char == KEY_ENTER:
+      pass
+    if char == KEY_ESCAPE:
+      finished = "yes"
+
+  #gotoxy(1,25)
+  #message = str(offset)+" "+str(barOffset)+" "+highlightedBBS
+  #spc = 79-len(message)
+  #write(message+" "*spc)
+  return finished
+
+initNodelist()
+offset = 0
+init()
+
+while canexit == "no":
+  canexit = mainMenu()
+
 writeln("|PA")
