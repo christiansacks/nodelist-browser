@@ -134,6 +134,38 @@ def showList(offset = 0):
         C5 = dictNodelist[BBS]["RATING"].replace('_',' ').ljust(6)[:6]
         writeln(C1+" "+C2+" "+C3+" "+C4+" "+C5+"  |16|07")
 
+def drawWindow(x1, y1, x2, y2):
+  for Y in range(y1, y2):
+    for X in range(x1, x2):
+      gotoxy(X, Y); write(' ')
+  for I in range(x1+1, x2-1):
+    gotoxy(I, y1+1); write('|10-')
+    gotoxy(I, y2-2); write('|11-')
+  for I in range(y1+1, y2-1):
+    gotoxy(x1+1, I); write('|12|')
+    gotoxy(x2-1, I); write('|13|')
+  gotoxy(x1+1,y1+1); write('.')
+  gotoxy(x2-1,y1+1); write('.')
+  gotoxy(x1+1,y2-2); write('`')
+  gotoxy(x2+1,y2-2); write('`')
+
+def showDetail(BBS):
+  write("|SS")
+  drawWindow(10,4,70,20)
+  bbs = BBS.replace('_',' ').ljust(22)[:22]
+  sysop = dictNodelist[BBS]["SYSOP"].replace('_',' ')
+  location = dictNodelist[BBS]["LOCATION"].replace('_',' ')
+  software = dictNodelist[BBS]["SOFTWARE"]
+  rating = dictNodelist[BBS]["RATING"]
+  address = dictNodelist[BBS]["ADDRESS"]
+  port = dictNodelist[BBS]["PORT"]
+
+  gotoxy(14,7); write(" BBS Name: "+bbs)
+  gotoxy(14,8); write("BBS SysOp: "+sysop)
+  gotoxy(40,7); write("BBS Location: "+location)
+  gotoxy(1,25); write("|PA")
+  write("|RS")
+
 def mainMenu():
   global barOffset, offset, highlightedBBS
   maxOffset = len(dictNodelist)-screenDepth-1
@@ -175,7 +207,7 @@ def mainMenu():
 
   else:
     if char == KEY_ENTER:
-      pass
+      showDetail(highlightedBBS)
     if char == KEY_ESCAPE:
       finished = "yes"
 
@@ -188,7 +220,7 @@ def mainMenu():
 initNodelist()
 offset = 0
 init()
-
+highlightedBBS = getBBS(0, 0)
 while canexit == "no":
   canexit = mainMenu()
 
