@@ -12,9 +12,9 @@ screenWidth = 80
 screenDepth = 24
 AUTHOR = "MeaTLoTioN"
 cRESET = "|16|07"
-hBG = "|20"
+hBG = "|19"
 hFG = "|14"
-fBG = "|20"
+fBG = "|19"
 fFG = "|14"
 barOffset = 1
 highlightedBBS = ""
@@ -254,9 +254,10 @@ def showDetail(BBS):
     if ch == 'Q':
       canend = "yes"
     if ch == 'C':
-      write('|SS'); write('|CL')
-      menucmd('IT','/addr='+address+' /port='+str(port))
-      write('[0;26 D'); write('|RS')
+      if address and "Private" not in address:
+        write('|SS'); write('|CL')
+        menucmd('IT','/addr='+address+' /port='+str(port))
+        write('[0;26 D'); write('|RS')
     if ch == KEY_LEFT:
       if rating > 0:
         rating -= 1
