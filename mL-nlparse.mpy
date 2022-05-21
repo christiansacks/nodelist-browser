@@ -339,6 +339,7 @@ def mainMenu():
       finished = "yes"
   return finished
 
+menucmd('NA','sIftIng fOr gOld')
 loadDB()
 initNodelist()
 offset = 0
