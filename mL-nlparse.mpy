@@ -230,6 +230,8 @@ def showDetail(BBS):
   except:
     rating = 0
   address = dictNodelist[BBS]["ADDRESS"]
+  if not address:
+    address = "Unknown"
   port = dictNodelist[BBS]["PORT"]
   node_addresses = dictNodelist[BBS]["NODE_ADDRESSES"]
   drawWindow(15,4,65,20,bbs)
@@ -256,7 +258,7 @@ def showDetail(BBS):
 
   gotoxy(18,18); write("|13[ |15Q to go back |13]")
   gotoxy(35,18); write("|13[ |10"+(chr(254)*rating).ljust(7)+" |13]")
-  if address and "Private" not in address:
+  if address and "Private" not in address and "Unknown" not in address:
     gotoxy(47,18); write("|13[ |15C to connect |13]")
   else:
     gotoxy(47,18); write("|13[ |08C to connect |13]")
@@ -267,7 +269,7 @@ def showDetail(BBS):
     if ch == 'Q':
       canend = "yes"
     if ch == 'C':
-      if address and "Private" not in address:
+      if address and "Private" not in address and "Unknown" not in address:
         write('|SS'); write('|CL')
         menucmd('IT','/addr='+address+' /port='+str(port))
         write('[0;26 D'); write('|RS')
