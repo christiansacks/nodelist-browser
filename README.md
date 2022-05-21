@@ -13,14 +13,7 @@ Change this to point to wherever your mystic install is so it can see the nodeli
 Then in mystic configuration utility, edit your chosen menu, and add a new item, using this
 as a guide;
 
-╔════════════════════ Command Options ════════════════════╗
-║                                                         ║
-║ Command    │ (GY) Execute Python 2 Script               ║
-║ Data       │ /mystic/scripts/mL-nlparse.mpy             ║
-║ Access     │                                            ║
-║ Grid Event │ Selected                                   ║
-║                                                         ║
-╚═════════════════════════════════════════════════════════╝
+![image](https://user-images.githubusercontent.com/40481087/169669331-21279f91-2976-44ea-b338-1ff8dded5eab.png)
 
 That's it. Assuming you put the correct directory in the NODELIST variable, and have set up
 mystic to run this script in the way documented above, everything will be fine.
