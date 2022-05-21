@@ -26,6 +26,10 @@ KEY_ENTER    = chr(13)
 KEY_TAB      = chr(9)
 KEY_LEFT     = chr(75)
 KEY_RIGHT    = chr(77)
+KEY_HOME     = chr(71)
+KEY_END      = chr(79)
+KEY_PGUP    = chr(73)
+KEY_PGDN    = chr(81)
 
 def saveDB():
   global ratingsDB 
@@ -304,18 +308,28 @@ def mainMenu():
         if offset < maxOffset:
           offset += 1
       highlightedBBS = getBBS(barOffset, offset)
-    if char == KEY_LEFT:
+    if char == KEY_LEFT or char == KEY_PGUP:
       if offset > screenDepth-3:
         offset -= screenDepth-3
       else:
         offset = 0
+      if barOffset > 1 and offset < 1:
+        barOffset = 1
       highlightedBBS = getBBS(barOffset, offset)
-    if char == KEY_RIGHT:
+    if char == KEY_RIGHT or char == KEY_PGDN:
       if offset < maxOffset - (screenDepth-3):
         offset += screenDepth-3
       else:
         offset = maxOffset
+      if barOffset < screenDepth-2 and offset > maxOffset-1:
+        barOffset = screenDepth-2
       highlightedBBS = getBBS(barOffset, offset)
+    if char == KEY_HOME:
+      barOffset = 1
+      offset = 0
+    if char == KEY_END:
+      barOffset = screenDepth-2
+      offset = maxOffset
   else:
     if char == KEY_ENTER:
       showDetail(highlightedBBS)
