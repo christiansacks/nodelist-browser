@@ -119,7 +119,7 @@ def initNodelist():
           elif [match for match in tmp if "WLDC" in match]:
             BBS_SOFTWARE = "Wildcat"
           else:
-            BBS_SOFTWARE = "|08n/a"
+            BBS_SOFTWARE = "n/a"
         except:
           BBS_SOFTWARE = "Undefined"
   
@@ -194,12 +194,16 @@ def showList(offset = 0):
         C1 = BBS.replace('_',' ').ljust(22)[:22]
         C2 = dictNodelist[BBS]["SYSOP"].replace('_',' ').ljust(15)[:15]
         C3 = dictNodelist[BBS]["LOCATION"].replace('_',' ').ljust(15)[:15]
-        C4 = dictNodelist[BBS]["SOFTWARE"].replace('_',' ').ljust(15)[:15]
+        C4 = dictNodelist[BBS]["SOFTWARE"].ljust(15)[:15]
+        if "n/a" in C4:
+          SPC = "|08"
+        else:
+          SPC = ""
         try:
           C5 = ratingsDB[BBS]
         except:
           C5 = 0 
-        thisLine = C1+" "+C2+" "+C3+" "+C4+" "+"|10"+(chr(254)*C5).rjust(7)
+        thisLine = C1+" "+C2+" "+C3+" "+SPC+C4+" "+"|10"+(chr(254)*C5).rjust(7)
         pad = " "*(79-len(stripmci(thisLine)))
         writeln(thisLine.ljust(79)+pad+"|16|07")
 
