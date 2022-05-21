@@ -254,7 +254,9 @@ def showDetail(BBS):
     if ch == 'Q':
       canend = "yes"
     if ch == 'C':
-      gotoxy(1,25);write('C pressed')
+      write('|SS'); write('|CL')
+      menucmd('IT','/addr='+address+' /port='+str(port))
+      write('[0;26 D'); write('|RS')
     if ch == KEY_LEFT:
       if rating > 0:
         rating -= 1
