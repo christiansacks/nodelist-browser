@@ -118,7 +118,7 @@ def initNodelist():
           elif [match for match in tmp if "WLDC" in match]:
             BBS_SOFTWARE = "Wildcat"
           else:
-            BBS_SOFTWARE = "n/a"
+            BBS_SOFTWARE = "|08n/a"
         except:
           BBS_SOFTWARE = "Undefined"
   
@@ -196,7 +196,7 @@ def showList(offset = 0):
         except:
           C5 = 0 
         thisLine = C1+" "+C2+" "+C3+" "+C4+" "+"|10"+(chr(254)*C5).rjust(7)
-        pad = " "*(79-len(thisLine))
+        pad = " "*(79-len(stripmci(thisLine)))
         writeln(thisLine.ljust(79)+pad+"|16|07")
 
 def drawWindow(x1, y1, x2, y2, title = ""):
