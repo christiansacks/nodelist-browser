@@ -242,7 +242,7 @@ def showDetail(BBS):
   gotoxy(18,10); write("|13BBS Address")
   gotoxy(18,11); write('|15'+address+':'+str(port))
   gotoxy(51,10); write("|13BBS Software")
-  gotoxy(41,11); write('|15'+software.rjust(22))
+  gotoxy(48,11); write('|15'+software.rjust(15)[:15])
 
   gotoxy(18,14); write("|13Node Address(es)")
   count = 0
