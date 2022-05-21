@@ -85,6 +85,13 @@ def initNodelist():
         else:
           BBS_PORT = 23
 
+        for i in range(0,len(tmp)-1):
+          if "ITN" in tmp[i]:
+            if ":" in tmp[i]:
+              BBS_PORT = tmp[i].split(':')[1]
+            else:
+              BBS_PORT = 23
+
         try:
           if [match for match in tmp if "MY" in match]:
             BBS_SOFTWARE = "Mystic"
@@ -214,7 +221,6 @@ def showDetail(BBS):
   sysop = dictNodelist[BBS]["SYSOP"].replace('_',' ')
   location = dictNodelist[BBS]["LOCATION"].replace('_',' ')
   software = dictNodelist[BBS]["SOFTWARE"]
-  #rating = dictNodelist[BBS]["RATING"]
   try:
     rating = ratingsDB[BBS]
   except:
@@ -246,8 +252,11 @@ def showDetail(BBS):
 
   gotoxy(18,18); write("|13[ |15Q to go back |13]")
   gotoxy(35,18); write("|13[ |10"+(chr(254)*rating).ljust(7)+" |13]")
-  gotoxy(47,18); write("|13[ |15C to connect |13]")
-  gotoxy(1,25);
+  if address and "Private" not in address:
+    gotoxy(47,18); write("|13[ |15C to connect |13]")
+  else:
+    gotoxy(47,18); write("|13[ |08C to connect |13]")
+  gotoxy(1,24);
   canend = "no"
   while not canend == "yes":
     ch = onekey(chr(13) + 'CQ'+KEY_RIGHT+KEY_LEFT, False)
@@ -284,7 +293,7 @@ def mainMenu():
     if char == KEY_UP:
       if barOffset > 1:
         barOffset -= 1
-      if barOffset == 1:
+      elif barOffset == 1:
         if offset > 0:
           offset -= 1
       highlightedBBS = getBBS(barOffset, offset)
