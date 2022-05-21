@@ -1,10 +1,12 @@
-import sys
+import sys, pickle
 from random import randint
 from pprint import pprint as pp
 from mystic_bbs import *
 
 NODELIST = "/mystic/data/nodelist.txt"
+RATING_FILE = "/mystic/scripts/mL-nlparse.dat"
 dictNodelist = {}
+ratingsDB = {}
 canexit = "no"
 screenWidth = 80
 screenDepth = 24
@@ -24,6 +26,28 @@ KEY_ENTER    = chr(13)
 KEY_TAB      = chr(9)
 KEY_LEFT     = chr(75)
 KEY_RIGHT    = chr(77)
+
+def saveDB():
+  global ratingsDB 
+  global RATING_FILE
+  with open(RATING_FILE, 'wb') as fhandle:
+    pickle.dump(ratingsDB, fhandle, protocol=pickle.HIGHEST_PROTOCOL)
+
+def loadDB():
+  global ratingsDB 
+  global RATING_FILE
+  try:
+    with open(RATING_FILE, 'rb') as fhandle:
+      ratingsDB = pickle.load(fhandle)
+  except:
+    pass
+
+def stripmci(str):
+  pos = str.find("|")
+  while pos != -1 :
+    str = str[:pos] + str[pos+3:]
+    pos = str.find("|")
+  return str
 
 def initNodelist():
   with open(NODELIST) as f:
@@ -61,7 +85,31 @@ def initNodelist():
         else:
           BBS_PORT = 23
 
-        BBS_SOFTWARE = "Undefined"
+        try:
+          if [match for match in tmp if "MY" in match]:
+            BBS_SOFTWARE = "Mystic"
+          elif [match for match in tmp if "SC" in match]:
+            BBS_SOFTWARE = "Synchronet"
+          elif [match for match in tmp if "SYNC" in match]:
+            BBS_SOFTWARE = "Synchronet"
+          elif [match for match in tmp if "MB" in match]:
+            BBS_SOFTWARE = "MBSE"
+          elif [match for match in tmp if "LGCX" in match]:
+            BBS_SOFTWARE = "Legacy/X"
+          elif [match for match in tmp if "ENIG" in match]:
+            BBS_SOFTWARE = "Enigma1/2"
+          elif [match for match in tmp if "CNET" in match]:
+            BBS_SOFTWARE = "CNET"
+          elif [match for match in tmp if "PCB" in match]:
+            BBS_SOFTWARE = "PC Board"
+          elif [match for match in tmp if "OBV2" in match]:
+            BBS_SOFTWARE = "Oblivion 2"
+          elif [match for match in tmp if "WLDC" in match]:
+            BBS_SOFTWARE = "Wildcat"
+          else:
+            BBS_SOFTWARE = "n/a"
+        except:
+          BBS_SOFTWARE = "Undefined"
   
         d = dictNodelist[BBS_NAME]
         d["NAME"] = BBS_NAME_PRETTY
@@ -70,7 +118,8 @@ def initNodelist():
         d["ADDRESS"] = BBS_ADDRESS
         d["PORT"] = BBS_PORT
         d["SOFTWARE"] = BBS_SOFTWARE
-        d["RATING"] = "X"*randint(0, 6)
+        d["RATING"] = 0
+        
         if "NODE_ADDRESSES" not in d:
           d["NODE_ADDRESSES"] = []
         NODE_ADDRESS = "%s:%s/%s" % (ZONE,REGION,NODE)
@@ -131,50 +180,104 @@ def showList(offset = 0):
         C2 = dictNodelist[BBS]["SYSOP"].replace('_',' ').ljust(15)[:15]
         C3 = dictNodelist[BBS]["LOCATION"].replace('_',' ').ljust(15)[:15]
         C4 = dictNodelist[BBS]["SOFTWARE"].replace('_',' ').ljust(15)[:15]
-        C5 = dictNodelist[BBS]["RATING"].replace('_',' ').ljust(6)[:6]
-        writeln(C1+" "+C2+" "+C3+" "+C4+" "+C5+"  |16|07")
+        try:
+          C5 = ratingsDB[BBS]
+        except:
+          C5 = 0 
+        thisLine = C1+" "+C2+" "+C3+" "+C4+" "+"|10"+(chr(254)*C5).rjust(7)
+        pad = " "*(79-len(thisLine))
+        writeln(thisLine.ljust(79)+pad+"|16|07")
 
-def drawWindow(x1, y1, x2, y2):
+def drawWindow(x1, y1, x2, y2, title = ""):
   for Y in range(y1, y2):
     for X in range(x1, x2):
       gotoxy(X, Y); write(' ')
   for I in range(x1+1, x2-1):
-    gotoxy(I, y1+1); write('|10-')
-    gotoxy(I, y2-2); write('|11-')
+    gotoxy(I, y1+1); write('|13'+chr(205))
+    gotoxy(I, y2-2); write('|05'+chr(205))
   for I in range(y1+1, y2-1):
-    gotoxy(x1+1, I); write('|12|')
-    gotoxy(x2-1, I); write('|13|')
-  gotoxy(x1+1,y1+1); write('.')
-  gotoxy(x2-1,y1+1); write('.')
-  gotoxy(x1+1,y2-2); write('`')
-  gotoxy(x2+1,y2-2); write('`')
+    gotoxy(x1+1, I); write('|13'+chr(186))
+    gotoxy(x2-1, I); write('|05'+chr(186))
+  if title:
+    ntitle = "[ |15"+title+"|13 ]"
+    ltitle = len(stripmci(ntitle))
+    center = ((x2-x1)/2)-(ltitle/2)+x1
+    gotoxy(center, y1+1); write('|13'+ntitle)
+  gotoxy(x1+1,y1+1); write('|13'+chr(201))
+  gotoxy(x2-1,y1+1); write('|13'+chr(187))
+  gotoxy(x1+1,y2-2); write('|05'+chr(200))
+  gotoxy(x2-1,y2-2); write('|05'+chr(188))
 
 def showDetail(BBS):
   write("|SS")
-  drawWindow(10,4,70,20)
-  bbs = BBS.replace('_',' ').ljust(22)[:22]
+  bbs = BBS.replace('_',' ')[:22]
   sysop = dictNodelist[BBS]["SYSOP"].replace('_',' ')
   location = dictNodelist[BBS]["LOCATION"].replace('_',' ')
   software = dictNodelist[BBS]["SOFTWARE"]
-  rating = dictNodelist[BBS]["RATING"]
+  #rating = dictNodelist[BBS]["RATING"]
+  try:
+    rating = ratingsDB[BBS]
+  except:
+    rating = 0
   address = dictNodelist[BBS]["ADDRESS"]
   port = dictNodelist[BBS]["PORT"]
+  node_addresses = dictNodelist[BBS]["NODE_ADDRESSES"]
+  drawWindow(15,4,65,20,bbs)
 
-  gotoxy(14,7); write(" BBS Name: "+bbs)
-  gotoxy(14,8); write("BBS SysOp: "+sysop)
-  gotoxy(40,7); write("BBS Location: "+location)
-  gotoxy(1,25); write("|PA")
+  gotoxy(18,7); write("|13BBS SysOp")
+  gotoxy(18,8); write('|15'+sysop)
+  gotoxy(51,7); write("|13BBS Location")
+  gotoxy(41,8); write('|15'+location.rjust(22))
+
+  gotoxy(18,10); write("|13BBS Address")
+  gotoxy(18,11); write('|15'+address+':'+str(port))
+  gotoxy(51,10); write("|13BBS Software")
+  gotoxy(41,11); write('|15'+software.rjust(22))
+
+  gotoxy(18,14); write("|13Node Address(es)")
+  count = 0
+  row = 1
+  for node_address in node_addresses:
+    count += 1
+    if count > 3:
+      count = 1
+      row += 1
+    gotoxy(6+(count*12), 14+row); write('|15'+node_address)
+
+  gotoxy(18,18); write("|13[ |15Q to go back |13]")
+  gotoxy(35,18); write("|13[ |10"+(chr(254)*rating).ljust(7)+" |13]")
+  gotoxy(47,18); write("|13[ |15C to connect |13]")
+  gotoxy(1,25);
+  canend = "no"
+  while not canend == "yes":
+    ch = onekey(chr(13) + 'CQ'+KEY_RIGHT+KEY_LEFT, False)
+    if ch == 'Q':
+      canend = "yes"
+    if ch == 'C':
+      gotoxy(1,25);write('C pressed')
+    if ch == KEY_LEFT:
+      if rating > 0:
+        rating -= 1
+        ratingsDB[BBS] = rating
+        saveDB()
+        gotoxy(35,18); write("|13[ |10"+(chr(254)*rating).ljust(7)+" |13]")
+    if ch == KEY_RIGHT:
+      if rating < 7:
+        rating += 1
+        ratingsDB[BBS] = rating
+        saveDB()
+        gotoxy(35,18); write("|13[ |10"+(chr(254)*rating).ljust(7)+" |13]")
   write("|RS")
 
 def mainMenu():
   global barOffset, offset, highlightedBBS
   maxOffset = len(dictNodelist)-screenDepth-1
   finished = "no"
+  highlightedBBS = getBBS(barOffset, offset)
   showList(offset)
   char, extended = getkey()
 
   if extended:
-
     if char == KEY_UP:
       if barOffset > 1:
         barOffset -= 1
@@ -182,7 +285,6 @@ def mainMenu():
         if offset > 0:
           offset -= 1
       highlightedBBS = getBBS(barOffset, offset)
-
     if char == KEY_DOWN:
       if barOffset < screenDepth-2:
         barOffset += 1
@@ -190,38 +292,29 @@ def mainMenu():
         if offset < maxOffset:
           offset += 1
       highlightedBBS = getBBS(barOffset, offset)
-
     if char == KEY_LEFT:
       if offset > screenDepth-3:
         offset -= screenDepth-3
       else:
         offset = 0
       highlightedBBS = getBBS(barOffset, offset)
-
     if char == KEY_RIGHT:
       if offset < maxOffset - (screenDepth-3):
         offset += screenDepth-3
       else:
         offset = maxOffset
       highlightedBBS = getBBS(barOffset, offset)
-
   else:
     if char == KEY_ENTER:
       showDetail(highlightedBBS)
     if char == KEY_ESCAPE:
       finished = "yes"
-
-  #gotoxy(1,25)
-  #message = str(offset)+" "+str(barOffset)+" "+highlightedBBS
-  #spc = 79-len(message)
-  #write(message+" "*spc)
   return finished
 
+loadDB()
 initNodelist()
 offset = 0
 init()
 highlightedBBS = getBBS(0, 0)
 while canexit == "no":
   canexit = mainMenu()
-
-writeln("|PA")
