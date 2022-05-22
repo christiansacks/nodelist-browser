@@ -19,6 +19,8 @@ fFG = "|14"
 barOffset = 1
 highlightedBBS = ""
 
+filter = ""
+
 KEY_UP       = chr(72)
 KEY_DOWN     = chr(80)
 KEY_ESCAPE   = chr(27)
@@ -31,6 +33,7 @@ KEY_END      = chr(79)
 KEY_PGUP     = chr(73)
 KEY_PGDN     = chr(81)
 KEY_QMARK    = chr(63)
+KEY_BSPACE   = chr(8)
 
 def saveDB():
   global ratingsDB 
@@ -110,6 +113,8 @@ def initNodelist():
             BBS_SOFTWARE = "Legacy/X"
           elif [match for match in tmp if "ENIG" in match]:
             BBS_SOFTWARE = "Enigma1/2"
+          elif [match for match in tmp if "EG" in match]:
+            BBS_SOFTWARE = "Enigma1/2"
           elif [match for match in tmp if "CNET" in match]:
             BBS_SOFTWARE = "CNET"
           elif [match for match in tmp if "PCB" in match]:
@@ -176,36 +181,45 @@ def getBBS(o, s):
 def showList(offset = 0):
   global barOffset
   global highlightedBBS
+  global filter
+  #gotoxy(68,24); write("|19|11"+str(len(filter))+" ")
   R = 1
   count = 0
   gotoxy(1,2)
   write("|16|07")
   tmpDict = sorted(dictNodelist, reverse=False)
   for BBS in tmpDict:
-    count += 1
-    if count < offset+1:
+    if not BBS.upper().startswith(filter):
       pass
     else:
-      R += 1
-      if R < screenDepth:
-        if barOffset+1 == R:
-          gotoxy(1,R)
-          write('|21|15')
-        C1 = BBS.replace('_',' ').ljust(22)[:22]
-        C2 = dictNodelist[BBS]["SYSOP"].replace('_',' ').ljust(15)[:15]
-        C3 = dictNodelist[BBS]["LOCATION"].replace('_',' ').ljust(15)[:15]
-        C4 = dictNodelist[BBS]["SOFTWARE"].ljust(15)[:15]
-        if "n/a" in C4:
-          SPC = "|08"
-        else:
-          SPC = ""
-        try:
-          C5 = ratingsDB[BBS]
-        except:
-          C5 = 0 
-        thisLine = C1+" "+C2+" "+C3+" "+SPC+C4+" "+"|10"+(chr(254)*C5).rjust(7)
-        pad = " "*(79-len(stripmci(thisLine)))
-        writeln(thisLine.ljust(79)+pad+"|16|07")
+      count += 1
+      if count < offset+1:
+        pass
+      else:
+        R += 1
+        if R < screenDepth:
+          if barOffset+1 == R:
+            gotoxy(1,R)
+            write('|21|15')
+          C1 = BBS.replace('_',' ').ljust(22)[:22]
+          C2 = dictNodelist[BBS]["SYSOP"].replace('_',' ').ljust(15)[:15]
+          C3 = dictNodelist[BBS]["LOCATION"].replace('_',' ').ljust(15)[:15]
+          C4 = dictNodelist[BBS]["SOFTWARE"].ljust(15)[:15]
+          if "n/a" in C4:
+            SPC = "|08"
+          else:
+            SPC = ""
+          try:
+            C5 = ratingsDB[BBS]
+          except:
+            C5 = 0 
+          thisLine = C1+" "+C2+" "+C3+" "+SPC+C4+" "+"|10"+(chr(254)*C5).rjust(7)
+          pad = " "*(79-len(stripmci(thisLine)))
+          writeln(thisLine.ljust(79)+pad+"|16|07")
+  if count < screenDepth-1:
+    for i in range(count, screenDepth):
+      gotoxy(1,i); write("|[K")
+  gotoxy(1,24); write("|19|11"+filter.ljust(18)[:18]+"|16|07")
 
 def drawWindow(x1, y1, x2, y2, title = ""):
   for Y in range(y1, y2):
@@ -216,16 +230,16 @@ def drawWindow(x1, y1, x2, y2, title = ""):
     gotoxy(I, y2-2); write('|05'+chr(205))
   for I in range(y1+1, y2-1):
     gotoxy(x1+1, I); write('|13'+chr(186))
-    gotoxy(x2-1, I); write('|05'+chr(186))
+    gotoxy(x2-2, I); write('|05'+chr(186))
   if title:
     ntitle = "[ |15"+title+"|13 ]"
     ltitle = len(stripmci(ntitle))
     center = ((x2-x1)/2)-(ltitle/2)+x1
     gotoxy(center, y1+1); write('|13'+ntitle)
   gotoxy(x1+1,y1+1); write('|13'+chr(201))
-  gotoxy(x2-1,y1+1); write('|13'+chr(187))
+  gotoxy(x2-2,y1+1); write('|13'+chr(187))
   gotoxy(x1+1,y2-2); write('|05'+chr(200))
-  gotoxy(x2-1,y2-2); write('|05'+chr(188))
+  gotoxy(x2-2,y2-2); write('|05'+chr(188))
 
 def showHelp():
   write("|SS")
@@ -241,7 +255,7 @@ def showHelp():
   gotoxy(13,14);write("|15In the BBS Detail view:                              ")
   gotoxy(13,15);write("|15LEFT/RIGHT allows you to rate the BBS from 0-7       ")
   gotoxy(13,16);write("|15If the BBS isn't Private, connect to it by pressing C")
-  gotoxy(13,17);write("|15To leave the detail view press Q                     ")
+  gotoxy(13,17);write("|15To leave the detail view press Q or UP/DOWN arrows.  ")
   gotoxy(13,18);write("|15                                                     ")
   gotoxy(13,19);write("|15To exit the program press ESCAPE at the list view.   ")
   gotoxy(13,20);write("|15                                                     ")
@@ -263,12 +277,12 @@ def showDetail(BBS):
     address = "Unknown"
   port = dictNodelist[BBS]["PORT"]
   node_addresses = dictNodelist[BBS]["NODE_ADDRESSES"]
-  drawWindow(15,4,65,20,bbs)
+  drawWindow(15,4,66,20,bbs)
 
   gotoxy(18,7); write("|13BBS SysOp")
   gotoxy(18,8); write('|15'+sysop)
   gotoxy(51,7); write("|13BBS Location")
-  gotoxy(41,8); write('|15'+location.rjust(22))
+  gotoxy(41,8); write('|15'+location.rjust(22)[:22])
 
   gotoxy(18,10); write("|13BBS Address")
   gotoxy(18,11); write('|15'+address+':'+str(port))
@@ -294,14 +308,14 @@ def showDetail(BBS):
   gotoxy(1,24);
   canend = "no"
   while not canend == "yes":
-    ch = onekey(chr(13) + 'CQ'+KEY_RIGHT+KEY_LEFT, False)
-    if ch == 'Q':
+    ch = onekey(chr(13) + 'CQ'+KEY_RIGHT+KEY_LEFT+KEY_UP+KEY_DOWN, False)
+    if ch == 'Q' or ch == KEY_UP or ch == KEY_DOWN:
       canend = "yes"
     if ch == 'C':
       if address and "Private" not in address and "Unknown" not in address:
-        write('|SS'); write('|CL')
+        write('|SS'); write('|[1|CL')
         menucmd('IT','/addr='+address+' /port='+str(port))
-        write('[0;26 D'); write('|RS')
+        write('[0;26 D'); write('|RS|[0')
     if ch == KEY_LEFT:
       if rating > 0:
         rating -= 1
@@ -317,7 +331,7 @@ def showDetail(BBS):
   write("|RS")
 
 def mainMenu():
-  global barOffset, offset, highlightedBBS
+  global barOffset, offset, highlightedBBS, filter
   maxOffset = len(dictNodelist)-screenDepth-1
   finished = "no"
   highlightedBBS = getBBS(barOffset, offset)
@@ -368,9 +382,16 @@ def mainMenu():
       finished = "yes"
     if char == KEY_QMARK:
       showHelp()
+    #if char == KEY_BSPACE:
+    #  if len(filter) > 0:
+    #    filter = filter[:-1]
+    #if char.isalnum() or char.isspace():
+    #  if len(filter) < 18:
+    #    filter = filter+char.upper()
   return finished
 
 menucmd('NA','sIftIng fOr gOld')
+write("|[0")
 loadDB()
 initNodelist()
 offset = 0
@@ -378,3 +399,4 @@ init()
 highlightedBBS = getBBS(0, 0)
 while canexit == "no":
   canexit = mainMenu()
+write("|[1")
