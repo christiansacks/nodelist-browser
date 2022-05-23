@@ -168,11 +168,20 @@ def footer():
   write(cRESET)
 
 def getBBS(o, s):
-  global barOffset
+  global barOffset, filter, fDictSortedLen
   selectedBBS = ""
   count = 0
   tmpDict = sorted(dictNodelist, reverse=False)
+
+  fDict = {}
   for BBS in tmpDict:
+    if filter.upper() in BBS.upper():
+      fDict[BBS] = {}
+
+  fDictSorted = sorted(fDict, reverse=False)
+  fDictSortedLen = len(fDictSorted)
+
+  for BBS in fDictSorted:
     count += 1
     if count == o+s:
        selectedBBS = BBS
@@ -182,42 +191,50 @@ def showList(offset = 0):
   global barOffset
   global highlightedBBS
   global filter
+  global fDictSortedLen
   #gotoxy(68,24); write("|19|11"+str(len(filter))+" ")
+  gotoxy(10,1); write("|19|11["+str(fDictSortedLen).ljust(4)+"]")
   R = 1
   count = 0
   gotoxy(1,2)
   write("|16|07")
   tmpDict = sorted(dictNodelist, reverse=False)
+
+  fDict = {}
   for BBS in tmpDict:
-    if not BBS.upper().startswith(filter):
+    if filter.upper() in BBS.upper():
+      fDict[BBS] = {}
+
+  fDictSorted = sorted(fDict, reverse=False)
+  fDictSortedLen = len(fDictSorted)
+
+  for BBS in fDictSorted:
+    count += 1
+    if count < offset+1:
       pass
     else:
-      count += 1
-      if count < offset+1:
-        pass
-      else:
-        R += 1
-        if R < screenDepth:
-          if barOffset+1 == R:
-            gotoxy(1,R)
-            write('|21|15')
-          C1 = BBS.replace('_',' ').ljust(22)[:22]
-          C2 = dictNodelist[BBS]["SYSOP"].replace('_',' ').ljust(15)[:15]
-          C3 = dictNodelist[BBS]["LOCATION"].replace('_',' ').ljust(15)[:15]
-          C4 = dictNodelist[BBS]["SOFTWARE"].ljust(15)[:15]
-          if "n/a" in C4:
-            SPC = "|08"
-          else:
-            SPC = ""
-          try:
-            C5 = ratingsDB[BBS]
-          except:
-            C5 = 0 
-          thisLine = C1+" "+C2+" "+C3+" "+SPC+C4+" "+"|10"+(chr(254)*C5).rjust(7)
-          pad = " "*(79-len(stripmci(thisLine)))
-          writeln(thisLine.ljust(79)+pad+"|16|07")
+      R += 1
+      if R < screenDepth:
+        if barOffset+1 == R:
+          gotoxy(1,R)
+          write('|21|15')
+        C1 = BBS.replace('_',' ').ljust(22)[:22]
+        C2 = dictNodelist[BBS]["SYSOP"].replace('_',' ').ljust(15)[:15]
+        C3 = dictNodelist[BBS]["LOCATION"].replace('_',' ').ljust(15)[:15]
+        C4 = dictNodelist[BBS]["SOFTWARE"].ljust(15)[:15]
+        if "n/a" in C4:
+          SPC = "|08"
+        else:
+          SPC = ""
+        try:
+          C5 = ratingsDB[BBS]
+        except:
+          C5 = 0
+        thisLine = C1+" "+C2+" "+C3+" "+SPC+C4+" "+"|10"+(chr(254)*C5).rjust(7)
+        pad = " "*(79-len(stripmci(thisLine)))
+        writeln(thisLine.ljust(79)+pad+"|16|07")
   if count < screenDepth-1:
-    for i in range(count, screenDepth):
+    for i in range(count+2, screenDepth):
       gotoxy(1,i); write("|[K")
   gotoxy(1,24); write("|19|11"+filter.ljust(18)[:18]+"|16|07")
 
@@ -331,7 +348,7 @@ def showDetail(BBS):
   write("|RS")
 
 def mainMenu():
-  global barOffset, offset, highlightedBBS, filter
+  global barOffset, offset, highlightedBBS, filter, fDictSortedLen
   maxOffset = len(dictNodelist)-screenDepth-1
   finished = "no"
   highlightedBBS = getBBS(barOffset, offset)
@@ -347,11 +364,12 @@ def mainMenu():
           offset -= 1
       highlightedBBS = getBBS(barOffset, offset)
     if char == KEY_DOWN:
-      if barOffset < screenDepth-2:
-        barOffset += 1
-      elif barOffset > screenDepth-3:
-        if offset < maxOffset:
-          offset += 1
+      if barOffset < fDictSortedLen:
+        if barOffset < screenDepth-2:
+          barOffset += 1
+        elif barOffset > screenDepth-3:
+          if offset < maxOffset:
+            offset += 1
       highlightedBBS = getBBS(barOffset, offset)
     if char == KEY_LEFT or char == KEY_PGUP:
       if offset > screenDepth-3:
@@ -362,7 +380,9 @@ def mainMenu():
         barOffset = 1
       highlightedBBS = getBBS(barOffset, offset)
     if char == KEY_RIGHT or char == KEY_PGDN:
-      if offset < maxOffset - (screenDepth-3):
+      if fDictSortedLen < screenDepth-2:
+        barOffset = fDictSortedLen
+      elif offset < maxOffset - (screenDepth-3):
         offset += screenDepth-3
       else:
         offset = maxOffset
@@ -373,21 +393,25 @@ def mainMenu():
       barOffset = 1
       offset = 0
     if char == KEY_END:
-      barOffset = screenDepth-2
-      offset = maxOffset
+      if fDictSortedLen < screenDepth-2:
+        barOffset = fDictSortedLen-1
+      else:
+        barOffset = screenDepth-2
+        offset = maxOffset
   else:
     if char == KEY_ENTER:
       showDetail(highlightedBBS)
-    if char == KEY_ESCAPE:
+    elif char == KEY_ESCAPE:
       finished = "yes"
-    if char == KEY_QMARK:
+    elif char == KEY_QMARK:
       showHelp()
-    #if char == KEY_BSPACE:
-    #  if len(filter) > 0:
-    #    filter = filter[:-1]
-    #if char.isalnum() or char.isspace():
-    #  if len(filter) < 18:
-    #    filter = filter+char.upper()
+    elif char == KEY_BSPACE:
+      if len(filter) > 0:
+        filter = filter[:-1]
+    else:
+      if char.isalnum() or char.isspace():
+        if len(filter) < 18:
+          filter = filter+char.upper().replace(' ', '_')
   return finished
 
 menucmd('NA','sIftIng fOr gOld')
