@@ -416,6 +416,8 @@ def mainMenu():
         filter = filter[:-1]
     else:
       if char.isalnum() or char.isspace():
+        barOffset = 1
+        offset = 0
         if len(filter) < 18:
           filter = filter+char.upper().replace(' ', '_')
         highlightedBBS = getBBS(barOffset, offset)
