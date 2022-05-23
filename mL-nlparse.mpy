@@ -298,7 +298,7 @@ def showDetail(BBS):
     address = "Unknown"
   port = dictNodelist[BBS]["PORT"]
   node_addresses = dictNodelist[BBS]["NODE_ADDRESSES"]
-  drawWindow(15,4,66,20,bbs)
+  drawWindow(15,4,66,21,bbs)
 
   gotoxy(18,7); write("|13BBS SysOp")
   gotoxy(18,8); write('|15'+sysop)
@@ -320,12 +320,12 @@ def showDetail(BBS):
       row += 1
     gotoxy(6+(count*12), 14+row); write('|15'+node_address)
 
-  gotoxy(18,18); write("|13[ |15Q to go back |13]")
-  gotoxy(35,18); write("|13[ |10"+(chr(254)*rating).ljust(7)+" |13]")
+  gotoxy(18,19); write("|13[ |15Q to go back |13]")
+  gotoxy(35,19); write("|13[ |10"+(chr(254)*rating).ljust(7)+" |13]")
   if address and "Private" not in address and "Unknown" not in address:
-    gotoxy(47,18); write("|13[ |15C to connect |13]")
+    gotoxy(47,19); write("|13[ |15C to connect |13]")
   else:
-    gotoxy(47,18); write("|13[ |08C to connect |13]")
+    gotoxy(47,19); write("|13[ |08C to connect |13]")
   gotoxy(1,24);
   canend = "no"
   while not canend == "yes":
@@ -342,13 +342,13 @@ def showDetail(BBS):
         rating -= 1
         ratingsDB[BBS] = rating
         saveDB()
-        gotoxy(35,18); write("|13[ |10"+(chr(254)*rating).ljust(7)+" |13]")
+        gotoxy(35,19); write("|13[ |10"+(chr(254)*rating).ljust(7)+" |13]")
     if ch == KEY_RIGHT:
       if rating < 7:
         rating += 1
         ratingsDB[BBS] = rating
         saveDB()
-        gotoxy(35,18); write("|13[ |10"+(chr(254)*rating).ljust(7)+" |13]")
+        gotoxy(35,19); write("|13[ |10"+(chr(254)*rating).ljust(7)+" |13]")
   write("|RS")
 
 def mainMenu():
