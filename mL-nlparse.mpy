@@ -193,7 +193,8 @@ def showList(offset = 0):
   global filter
   global fDictSortedLen
   #gotoxy(68,24); write("|19|11"+str(len(filter))+" ")
-  gotoxy(10,1); write("|19|11["+str(fDictSortedLen).rjust(4)+"]")
+  position = str(barOffset+offset).rjust(4)+"/"+str(fDictSortedLen).rjust(4)
+  gotoxy(10,1); write("|19|11["+position+"]")
   R = 1
   count = 0
   gotoxy(1,2)
@@ -353,7 +354,7 @@ def showDetail(BBS):
 
 def mainMenu():
   global barOffset, offset, highlightedBBS, filter, fDictSortedLen
-  maxOffset = len(dictNodelist)-screenDepth-1
+  maxOffset = fDictSortedLen-(screenDepth-2)
   finished = "no"
   highlightedBBS = getBBS(barOffset, offset)
   showList(offset)
@@ -398,7 +399,7 @@ def mainMenu():
       offset = 0
     if char == KEY_END:
       if fDictSortedLen < screenDepth-2:
-        barOffset = fDictSortedLen-1
+        barOffset = fDictSortedLen
       else:
         barOffset = screenDepth-2
         offset = maxOffset
@@ -417,6 +418,7 @@ def mainMenu():
       if char.isalnum() or char.isspace():
         if len(filter) < 18:
           filter = filter+char.upper().replace(' ', '_')
+        highlightedBBS = getBBS(barOffset, offset)
   return finished
 
 menucmd('NA','sIftIng fOr gOld')
