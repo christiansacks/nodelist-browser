@@ -404,7 +404,8 @@ def mainMenu():
         offset = maxOffset
   else:
     if char == KEY_ENTER:
-      showDetail(highlightedBBS)
+      if fDictSortedLen > 0:
+        showDetail(highlightedBBS)
     elif char == KEY_ESCAPE:
       finished = "yes"
     elif char == KEY_QMARK:
