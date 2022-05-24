@@ -62,7 +62,7 @@ def initNodelist():
     lines = f.readlines()
   
   for line in lines:
-    if line.startswith(";"):
+    if line.startswith(";") or line.startswith("Hub"):
       pass
     else:
       tmp = line.strip("\n").split(",")
