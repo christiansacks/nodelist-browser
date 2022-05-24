@@ -192,6 +192,7 @@ def showList(offset = 0):
   global highlightedBBS
   global filter
   global fDictSortedLen
+  write('[?1000h')
   #gotoxy(68,24); write("|19|11"+str(len(filter))+" ")
   position = str(barOffset+offset).rjust(4)+"/"+str(fDictSortedLen).rjust(4)
   gotoxy(10,1); write("|19|11["+position+"]")
@@ -233,7 +234,9 @@ def showList(offset = 0):
           C5 = ratingsDB[BBS]
         except:
           C5 = 0
-        thisLine = C1+" "+C2+" "+C3+" "+SPC+C4+" "+"|10"+(chr(254)*C5).rjust(7)
+        C5Diff = 7 - C5
+        C5Text = "|10"+chr(254)*C5+"|08"+chr(254)*C5Diff
+        thisLine = C1+" "+C2+" "+C3+" "+SPC+C4+" "+C5Text.rjust(7)
         pad = " "*(79-len(stripmci(thisLine)))
         writeln(thisLine.ljust(79)+pad+"|16|07")
   if count < screenDepth-1:
@@ -286,6 +289,7 @@ def showHelp():
 
 def showDetail(BBS):
   write("|SS")
+  write('[?1000l')
   bbs = BBS.replace('_',' ')[:22]
   sysop = dictNodelist[BBS]["SYSOP"].replace('_',' ')
   location = dictNodelist[BBS]["LOCATION"].replace('_',' ')
@@ -322,7 +326,9 @@ def showDetail(BBS):
     gotoxy(6+(count*12), 14+row); write('|15'+node_address)
 
   gotoxy(18,19); write("|13[ |15Q to go back |13]")
-  gotoxy(35,19); write("|13[ |10"+(chr(254)*rating).ljust(7)+" |13]")
+  ratingDiff = 7 - rating
+  ratingText = "|10"+chr(254)*rating+"|08"+chr(254)*ratingDiff
+  gotoxy(35,19); write("|13[ "+ratingText.ljust(7)+" |13]")
   if address and "Private" not in address and "Unknown" not in address:
     gotoxy(47,19); write("|13[ |15C to connect |13]")
   else:
@@ -343,13 +349,17 @@ def showDetail(BBS):
         rating -= 1
         ratingsDB[BBS] = rating
         saveDB()
-        gotoxy(35,19); write("|13[ |10"+(chr(254)*rating).ljust(7)+" |13]")
+        ratingDiff = 7 - rating
+        ratingText = "|10"+chr(254)*rating+"|08"+chr(254)*ratingDiff
+        gotoxy(35,19); write("|13[ "+ratingText.ljust(7)+" |13]")
     if ch == KEY_RIGHT:
       if rating < 7:
         rating += 1
         ratingsDB[BBS] = rating
         saveDB()
-        gotoxy(35,19); write("|13[ |10"+(chr(254)*rating).ljust(7)+" |13]")
+        ratingDiff = 7 - rating
+        ratingText = "|10"+chr(254)*rating+"|08"+chr(254)*ratingDiff
+        gotoxy(35,19); write("|13[ "+ratingText.ljust(7)+" |13]")
   write("|RS")
 
 def mainMenu():
@@ -433,3 +443,4 @@ highlightedBBS = getBBS(0, 0)
 while canexit == "no":
   canexit = mainMenu()
 write("|[1")
+write('[?1000l')
