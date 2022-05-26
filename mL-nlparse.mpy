@@ -193,7 +193,6 @@ def showList(offset = 0):
   global filter
   global fDictSortedLen
   write('[?1000h')
-  #gotoxy(68,24); write("|19|11"+str(len(filter))+" ")
   position = str(barOffset+offset).rjust(4)+"/"+str(fDictSortedLen).rjust(4)
   gotoxy(10,1); write("|19|11["+position+"]")
   R = 1
@@ -316,14 +315,18 @@ def showDetail(BBS):
   gotoxy(48,11); write('|15'+software.rjust(15)[:15])
 
   gotoxy(18,14); write("|13Node Address(es)")
-  count = 0
+  rCount = 0
+  tCount = 0
   row = 1
+  node_addresses.sort()
   for node_address in node_addresses:
-    count += 1
-    if count > 3:
-      count = 1
-      row += 1
-    gotoxy(6+(count*12), 14+row); write('|15'+node_address)
+    if tCount < 16:
+      rCount += 1
+      tCount += 1
+      if rCount > 4:
+        rCount = 1
+        row += 1
+      gotoxy(7+(rCount*11), 14+row); write('|15'+node_address.ljust(10))
 
   gotoxy(18,19); write("|13[ |15Q to go back |13]")
   ratingDiff = 7 - rating
