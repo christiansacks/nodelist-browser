@@ -345,7 +345,9 @@ def showDetail(BBS):
     if ch == 'C':
       if address and "Private" not in address and "Unknown" not in address:
         write('|SS'); write('|[1|CL')
+        menucmd('NA','jUmpIng tO: '+BBS)
         menucmd('IT','/addr='+address+' /port='+str(port))
+        menucmd('NA','sIftIng fOr gOld')
         write('[0;26 D'); write('|RS|[0')
     if ch == KEY_LEFT:
       if rating > 0:
